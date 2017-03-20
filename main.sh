@@ -14,8 +14,8 @@ dirc=$(pwd)
 # Directorio de pruebas
 pruebas=$dirc
 
-# Directorio de output
-output=$dirc
+# Directorio del resumen
+resumen=$dirc
 
 # Tarea
 N=0
@@ -40,9 +40,9 @@ do
             shift;;
         -o) if [ -d $2 ]
             then
-                output="$2"
+                resumen="$2"
             else
-                echo "$output/$2 no es un directorio valido."
+                echo "$resumen/$2 no es un directorio valido."
             fi
             shift;;
         -n) N=$2
@@ -75,11 +75,11 @@ echo  -e "\tRevisador de tareas V0.1\n"
 echo "Tarea $N"
 echo "Directorio de pruebas: $pruebas"
 echo "Directorio de tareas: $dirc"                
-echo "Directorio de resumenes: $output"
+echo "Directorio de resumen: $resumen"
 echo  -e "Cantidad de grupos: $tareas \n"
 
 # Creacion de informe
-informe="$output/informe_tarea$N.txt" 
+informe="$resumen/informe_tarea$N.txt" 
 echo "Tarea $N" > $informe
 date >> $informe
 echo -e "Grupos: $tareas\n\n" >> $informe
@@ -132,15 +132,15 @@ do
                 echo "Ejecutando tarea con $prueba..."
                 tempout=$(mktemp -t output.XXX)
                 templog=$(mktemp -t logval.XXX)
-                output=$(valgrind --leak-check=full -q --log-file=$templog $dirc/tarea$N-$grupo/tarea$N < $pruebas/$prueba)
-                echo $output > tempout
+                out =$(valgrind --leak-check=full -q --log-file=$templog $dirc/tarea$N-$grupo/tarea$N < $pruebas/$prueba)
+                echo $out >> tempout
 
                 echo "Revisando resultados..."
-                echo -n "Resultado en $prueba: "> $informe
-                python $comparar $pruebas/$prueba.out $tempout > $informe
+                echo -n "Resultado en $prueba: " >> $informe
+                python $comparar $pruebas/$prueba.out $tempout >> $informe
 
-                echo -n "Uso de memoria con $prueba: "> $informe
-                python $memocheck $templog > $informe 
+                echo -n "Uso de memoria con $prueba: " >> $informe
+                python $memocheck $templog >> $informe 
                 
                 rm -f $tempout
                 rm -f $templog
