@@ -4,6 +4,10 @@
 # Estructuras de Datos INF-134
 # Sebastian Borquez
 
+# Scripts de Python
+comparar="./comparator.py"
+memocheck="./memocheck.py"
+
 # Directorio de .tar.gz's
 dirc=$(pwd)
 
@@ -123,15 +127,23 @@ do
             echo "Warnings: $warns" >> $informe 
 
             # Ejecutar
-            for prueba in $(ls $pruebas/ | grep .i)
+            for prueba in $(ls $pruebas/ | grep input)
             do
-                resultado=$(valgrind --leak-check=full -q --log-file=temp $dirc/tarea$N-$grupo/tarea$N < prueba)
-                #TODO comparar con mi output
-                "$pruebas/$prueba.out"
+                echo "Ejecutando tarea con $prueba..."
+                tempout=$(mktemp -t output.XXX)
+                templog=$(mktemp -t logval.XXX)
+                output=$(valgrind --leak-check=full -q --log-file=$templog $dirc/tarea$N-$grupo/tarea$N < $pruebas/$prueba)
+                echo $output > tempout
 
-                #TODO revisar memory leaks
+                echo "Revisando resultados..."
+                echo -n "Resultado en $prueba: "> $informe
+                python $comparar $pruebas/$prueba.out $tempout > $informe
+
+                echo -n "Uso de memoria con $prueba: "> $informe
+                python $memocheck $templog > $informe 
                 
-                rm temp
+                rm -f $tempout
+                rm -f $templog
             done
 
         else
