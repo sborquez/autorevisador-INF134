@@ -201,15 +201,32 @@ echo "Warnings:$warns" >> $informe
 # Probar inputs
 for (( i=1; i < 3; i++ ))
 do
-    echo "Ejecutando $tareaN con $inputs/input$i ... "
+    echo "Ejecutando $tareaN con $inputs/input$i:"
+    echo "Inputs:"
+    cat $inputs/input$i
+
     tempout=$(mktemp -t output.XXX)
     templog=$(mktemp -t logval.XXX)
     valgrind --leak-check=full -q --log-file=$templog ./$tareaN < $inputs/input$i >> $tempout
-    echo -n "Revisando resultados ... "
-    resultado=$($comparar "input$i" $tempout)
-    echo $resultado
+    
+    echo -e "Output esperado:"
+    cat "$inputs/output$i"
+    
+    echo "Output obtenido:"
     cat $tempout
-    #cat $templog
+   
+    echo -e "\n"
+    echo -n "Revisando resultados ... "
+    resultado=$($comparar $inputs/output$i $tempout)
+    echo $resultado
+    
+    if [ "Correcto" != $resultado ]
+    then
+        echo -n "Revise manualemente: "
+        read resultado
+    else
+        resultado=50
+    fi
     echo "input$i:$resultado" >> $informe
 
     echo -n "Revisando memoria ... "
@@ -222,8 +239,10 @@ do
     rm -f $templog
 done
 
-#cd ..
-#rm "$tareaN-$grupo/" -r
+cd ..
+rm "$tareaN-$grupo/" -r
+echo -n "\nResultados:"
+cat "$informe"
 
-echo "Finalizado"
-echo "Saliendo"
+sleep 1 
+echo -n "\nFinalizado\nSaliendo"
