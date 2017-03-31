@@ -8,10 +8,6 @@
 comparar="comparator.py"
 memocheck="memocheck.py"
 
-# Directorio de .tar.gz's
-dirc=$(pwd)
-
-
 # Leyendo parametros
 while [ -n "$1" ]
 do
@@ -24,7 +20,7 @@ do
                 exit 1
             fi
             shift;;
-        -g) if [[ $2 =~ ^[1-9]$|^1[0-9]$|^2[0-8]$ ]
+        -g) if [[ $2 =~ ^[1-9]$|^1[0-9]$|^2[0-8]$ ]]
             then
                 if [ $2 -lt 10 ]
                 then
@@ -37,14 +33,41 @@ do
                 exit 1
             fi
             shift;;
+        
+        -home) if [ -d "$HOME/$2" ]
+            then
+                inputs="$HOME/$2"
+            else
+                echo "Argumento incorrecto: directorio inputs"
+                exit 1
+            fi
+            shift;;
+
+        -desktop) if [ -d "$HOME/Desktop/$2" ]
+            then
+                inputs="$HOME/Desktop/$2"
+            else
+                echo "Argumento incorrecto: directorio inputs"
+                exit 1
+            fi
+            shift;;
+
+        -d) if [ -d $2 ]
+            then
+                inputs="$2"
+            else
+                echo "Argumento incorrecto: directorio inputs"
+                exit 1
+            fi
+            shift;;
     esac
     shift
 done
 
 # Parametros dados?
-if [ -z "$grupo"] || [ -z "$N" ]
+if [ -z "$grupo"] || [ -z "$tareaN" ] || [ -z "$inputs"]
 then
-    echo "Usar -t y -g"
+    echo "Usar -t, -g y (-home|-desktop|-d)"
     echo "Saliendo"
     exit 1
 fi
@@ -55,21 +78,22 @@ clear
 echo  -e "\tRevisador de tareas individual V0.1\n"
 echo "Tarea: $tareaN"
 echo "Grupo: $grupo"
+echo "Inputs: $inputs"
 
 # Creacion de informe
 fecha=$(date +%T_%d-%m)
-informe="$grupo-$tareaN-$fecha.txt" 
+informe="$(pwd)/$grupo-$tareaN-$fecha.txt" 
 echo "Tarea:$tareaN" > $informe
 
 # Buscar archivo y descomprimir
-echo -n "Descomprimiendo $grupo-tarea$N.tar.gz ..."
+echo -e "\nDescomprimiendo $grupo-tarea$N.tar.gz"
 echo -n "Descomprimiendo:" >> $informe
 if tar xvzf "$grupo-$tareaN.tar.gz"   
 then
-    echo " OK"
+    echo "Descomprimido"
     echo "Exitoso" >> $informe
 else
-    echo " FAIL"
+    echo "FAIL"
     echo "Nombre archivo incorrecto" >> $informe
     echo "Debe extraer manualemente, continue luego de extraerlo."
     sleep 15
@@ -85,13 +109,14 @@ else
 fi
 
 # Revisar basura
-if [ 0 -ne $(ls -p | grep -v / | wc -l) ]
+if [ 0 -ne $(ls -p | grep -v -e "/$\|$grupo-$tareaN-$fecha\.txt$\|$grupo-$tareaN\.tar\.gz$" | wc -l) ]
 then
-    echo "Hay archivos basura:"
-    ls -p | grep -v /
+    echo -e "\nHay archivos basura:"
+    ls -p | grep -v -e "/$\|$grupo-$tareaN-$fecha\.txt\|$grupo-$tareaN\.tar\.gz$"
     echo "Descuento:Hay archivos basura" >> $informe
 fi
 # Buscar carpeta
+echo -e "\nBuscando carpeta $tareaN-$grupo/"
 if [ -d "$tareaN-$grupo" ]
 then
     echo "Carpeta correcta"
@@ -122,6 +147,7 @@ else
 fi
 
 # Buscar Makefile
+echo -e "\nBuscando Makefile"
 if [ ! -f "Makefile" ]
 then
     echo "No hay Makefile"
@@ -138,6 +164,7 @@ then
 fi
 
 # Compilar
+echo -e "\nCompilando"
 output_make=$(make $tareaN)
 if [ $? -ne 0 ]
 then
@@ -156,7 +183,7 @@ then
     fi
 else
     # Revisar -Wall
-    if [ $(echo $output_make | grep "Wall" -c |) -ne $(echo $output_make | grep "g++" -c) ]
+    if [ $(echo $output_make | grep "Wall" -c ) -ne $(echo $output_make | grep "g++" -c) ]
     then
         echo "Compilacion sin Wall"
         echo "Descuento:Compilar sin Wall" >> $informe
@@ -166,21 +193,23 @@ else
 fi
 
 # Revisar Warnings
+echo -e "Compilado\n"
 echo -n "Numero de warnings: "
 read warns
 echo "Warnings:$warns" >> $informe
 
 # Probar inputs
-for ( i = 1; i < 3; i++)
+for (( i=1; i < 3; i++ ))
 do
-    echo "Ejecutando $tareaN con input$i ... "
+    echo "Ejecutando $tareaN con $inputs/input$i ... "
     tempout=$(mktemp -t output.XXX)
     templog=$(mktemp -t logval.XXX)
-    output =$(valgrind --leak-check=full -q --log-file=$templog ./$tareaN < input$i)
-    echo $output >> $tempout
+    valgrind --leak-check=full -q --log-file=$templog ./$tareaN < $inputs/input$i >> $tempout
     echo -n "Revisando resultados ... "
     resultado=$($comparar "input$i" $tempout)
     echo $resultado
+    cat $tempout
+    #cat $templog
     echo "input$i:$resultado" >> $informe
 
     echo -n "Revisando memoria ... "
@@ -192,6 +221,9 @@ do
     rm -f $tempout
     rm -f $templog
 done
+
+#cd ..
+#rm "$tareaN-$grupo/" -r
 
 echo "Finalizado"
 echo "Saliendo"
