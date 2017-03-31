@@ -8,6 +8,9 @@
 comparar="comparator.py"
 memocheck="memocheck.py"
 
+# flag
+full=false
+
 # Leyendo parametros
 while [ -n "$1" ]
 do
@@ -60,12 +63,14 @@ do
                 exit 1
             fi
             shift;;
+        -full)
+            full=true
     esac
     shift
 done
 
 # Parametros dados?
-if [ -z "$grupo"] || [ -z "$tareaN" ] || [ -z "$inputs"]
+if [ -z "$grupo" ] || [ -z "$tareaN" ] || [ -z "$inputs" ]
 then
     echo "Usar -t, -g y (-home|-desktop|-d)"
     echo "Saliendo"
@@ -207,7 +212,7 @@ do
 
     tempout=$(mktemp -t output.XXX)
     templog=$(mktemp -t logval.XXX)
-    valgrind --leak-check=full -q --log-file=$templog ./$tareaN < $inputs/input$i >> $tempout
+    valgrind --leak-check=summary --log-file=$templog ./$tareaN < $inputs/input$i >> $tempout
     
     echo -e "Output esperado:"
     cat "$inputs/output$i"
@@ -222,7 +227,7 @@ do
     
     if [ "Correcto" != $resultado ]
     then
-        echo -n "Revise manualemente: "
+        echo -n "Revise manualemente (0-50): "
         read resultado
     else
         resultado=50
@@ -239,11 +244,17 @@ do
     rm -f $templog
 done
 
+if $full
+then
+    echo "full"
+    sleep 4
+fi
+
 cd ..
 rm "$tareaN-$grupo/" -r
-echo -n "\n\n\tResultados:"
+echo -e "\n\n\tResultados:"
 cat "$informe"
 
 
 sleep 1 
-echo -n "\nFinalizado\nSaliendo"
+echo -e "\nFinalizado\nSaliendo"

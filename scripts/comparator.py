@@ -13,5 +13,5 @@ data_esperada = "".join(data_esperada)
 data_tarea = "".join(data_tarea)
 if data_esperada == data_tarea:
     print "Correcto"
-else
+else:
     print "Revisar"
