@@ -241,8 +241,9 @@ done
 
 cd ..
 rm "$tareaN-$grupo/" -r
-echo -n "\nResultados:"
+echo -n "\n\n\tResultados:"
 cat "$informe"
+
 
 sleep 1 
 echo -n "\nFinalizado\nSaliendo"
