@@ -11,6 +11,24 @@ memocheck="memocheck.py"
 # flag
 full=false
 
+# Revisardor basura
+function limpio {
+    if [ 0 -ne $# ]
+    then
+        total=$(ls -p | grep -v -e "/$\|\.cpp$\|[mM]akefile\|\.h$\|\.hpp$\|README" | wc -l)
+        if [ 0 -ne $total]
+        then
+            echo -e "\nHay archivos basura:"
+            ls -p | grep -v -e "/$\|\.cpp$\|[mM]akefile\|\.h$\|\.hpp$\|README"
+            echo "Descuento:Hay archivos basura" >> $1
+            echo "Limpiando ..."
+            rm $(ls -p | grep -v -e "/$\|\.cpp$\|[mM]akefile\|\.h$\|\.hpp$\|README")
+        fi
+    else
+        return 1
+}
+
+
 # Leyendo parametros
 while [ -n "$1" ]
 do
@@ -23,34 +41,26 @@ do
                 exit 1
             fi
             shift;;
+
         -g) if [[ $2 =~ ^[1-9]$|^1[0-9]$|^2[0-8]$ ]]
             then
                 if [ $2 -lt 10 ]
                 then
-                    grupo="grupo0$2"
+                    grupoXX="grupo0$2"
                 else
-                    grupo="grupo$2"
+                    grupoXX="grupo$2"
                 fi
             else
                 echo "Argumento incorrecto: grupo"
                 exit 1
             fi
             shift;;
-        
-        -home) if [ -d "$HOME/$2" ]
-            then
-                inputs="$HOME/$2"
-            else
-                echo "Argumento incorrecto: directorio inputs"
-                exit 1
-            fi
-            shift;;
 
-        -desktop) if [ -d "$HOME/Desktop/$2" ]
+        -o) if [ -d $2 ]
             then
-                inputs="$HOME/Desktop/$2"
+                out_dir="$2"
             else
-                echo "Argumento incorrecto: directorio inputs"
+                echo "Argumento incorrecto: directorio informe"
                 exit 1
             fi
             shift;;
@@ -59,10 +69,11 @@ do
             then
                 inputs="$2"
             else
-                echo "Argumento incorrecto: directorio inputs"
+                echo "Argumento incorrecto: directorio pruebas"
                 exit 1
             fi
             shift;;
+
         -full)
             full=true
     esac
@@ -70,7 +81,7 @@ do
 done
 
 # Parametros dados?
-if [ -z "$grupo" ] || [ -z "$tareaN" ] || [ -z "$inputs" ]
+if [ -z "$grupoXX" ] || [ -z "$tareaN" ] || [ -z "$inputs" ] || [ -z "$out_dir" ]
 then
     echo "Usar -t, -g y (-home|-desktop|-d)"
     echo "Saliendo"
@@ -82,18 +93,18 @@ fi
 clear
 echo  -e "\tRevisador de tareas individual V0.1\n"
 echo "Tarea: $tareaN"
-echo "Grupo: $grupo"
+echo "Grupo: $grupoXX"
 echo "Inputs: $inputs"
 
 # Creacion de informe
 fecha=$(date +%T_%d-%m)
-informe="$(pwd)/$grupo-$tareaN-$fecha.txt" 
+informe="$out_dir/$grupoXX-$tareaN-$fecha.txt" 
 echo "Tarea:$tareaN" > $informe
 
 # Buscar archivo y descomprimir
-echo -e "\nDescomprimiendo $grupo-tarea$N.tar.gz"
+echo -e "\nDescomprimiendo $grupoXX-tarea$N.tar.gz"
 echo -n "Descomprimiendo:" >> $informe
-if tar xvzf "$grupo-$tareaN.tar.gz"   
+if tar xvzf "$grupoXX-$tareaN.tar.gz"   
 then
     echo "Descomprimido"
     echo "Exitoso" >> $informe
@@ -114,21 +125,24 @@ else
 fi
 
 # Revisar basura
-if [ 0 -ne $(ls -p | grep -v -e "/$\|$grupo-$tareaN-$fecha\.txt$\|$grupo-$tareaN\.tar\.gz$" | wc -l) ]
+if [ 0 -ne $(ls -p | grep -v -e "/$\|$grupoXX-$tareaN\.tar\.gz" | wc -l) ]
 then
     echo -e "\nHay archivos basura:"
-    ls -p | grep -v -e "/$\|$grupo-$tareaN-$fecha\.txt\|$grupo-$tareaN\.tar\.gz$"
+    ls -p | grep -v -e "/$\|$grupoXX-$tareaN\.tar\.gz"
     echo "Descuento:Hay archivos basura" >> $informe
+    echo "Limpiando ..."
+    rm $(ls -p | grep -v -e "/$\|$grupoXX-$tareaN\.tar\.gz")
 fi
+
 # Buscar carpeta
-echo -e "\nBuscando carpeta $tareaN-$grupo/"
-if [ -d "$tareaN-$grupo" ]
+echo -e "\nBuscando carpeta $tareaN-$grupoXX/"
+if [ -d "$tareaN-$grupoXX" ]
 then
     echo "Carpeta correcta"
     echo "Carpeta:correcta" >> $informe
-    cd "$tareaN-$grupo"
+    cd "$tareaN-$grupoXX"
     # Revisar y borrar basura 2
-    # TODO
+    limpio $informe
 
 else
     echo "No se encuentra la carpeta"
@@ -141,9 +155,8 @@ else
     elif cd ./*
     then
         echo "Se continuara de todas formas en $(pwd)"
-        # Revisar y borrar basura 2
-        # TODO
-        
+        # Revisar y borrar basura
+        limpio $informe
     else
         echo "No se puede continuar"
         echo "Saliendo"
@@ -250,8 +263,10 @@ then
     sleep 4
 fi
 
+
+
 cd ..
-rm "$tareaN-$grupo/" -r
+rm "$tareaN-$grupoXX/" -r
 echo -e "\n\n\tResultados:"
 cat "$informe"
 
