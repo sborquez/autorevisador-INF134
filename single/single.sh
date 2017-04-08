@@ -259,17 +259,136 @@ done
 
 if $full
 then
-    echo "full"
+    echo "Revision completa"
+    echo "README"
+    echo "README" >> $informe
+    echo "Abra README"
+    sleep 2
+
+    echo "Evaluacion"
+    echo "Evaluacion" >> $informe
+    echo -n "Nombres(10): "
+    read lee
+    echo "Nombres:$lee" >> $informe
+    echo -n "Supuestos(10): "
+    read lee
+    echo "Supuestos:$lee" >> $informe
+    echo -n "Tiempo(20): "
+    read lee
+    echo "Tiempo:$lee" >> $informe
+    echo -n "Grupo(30): "
+    read lee
+    echo "Grupo:$lee" >> $informe
+    echo -n "Dificultades(30): "
+    read lee
+    echo "Dificultades:$lee" >> $informe
+
+    echo "Descuentos extras"
+    echo "Descuentos extras" >> $informe
+    echo -n "Estructura incorrecta(s|n): "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:Estructura incorrecta" >> $informe
+    fi
+    echo -n "Errores ortograficos readme(cantidad): "
+    read lee
+    if [ 0 -ne $lee ]
+    then
+        echo "Descuento:Errores ortograficos:$lee" >> $informe
+    fi
+    echo -e "\nEntrega"
+    echo -n "Atraso(cantidad): "
+    read lee
+    if [ $lee -ne 0]
+    then
+        echo "Descuento:Atraso:$lee" >> $informe
+    fi
+    echo -n "Entrega repetida (s|n): "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:Entrega repetida" >> $informe
+    fi
+    echo -e "\nCodigo"
+    echo "Abra archivos fuentes"
     sleep 4
+    echo -n "Codigo sin citar(s|n): "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:Codigo sin citar" >> $informe
+    fi
+    echo -n "Copia(s|n): "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:copia" >> $informe
+    fi
+    echo -n "Mala identacion(s|n): "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:Mala identacion" >> $informe
+    fi
+    echo -n "Mala uso de llaves(s|n): "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:Mal uso de llaves" >> $informe
+    fi
+    echo -n "Mala uso de comentarios(s|n): "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:Mal uso comentarios" >> $informe
+    fi
+    echo -n "Tildes(s|n): "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:No ascii" >> $informe
+    fi
+    echo -n "Errores ortograficos codigo(cantidad): "
+    read lee
+    if [ $lee -ne 0 ]
+    then
+        echo "Descuento:Errores ortograficos codigo:$lee" >> $informe
+    fi
+    echo -n "Uso de no std(s|n): "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:Bibliotecas no std" >> $informe
+    fi
+    echo -n "Mal uso de tipos de datos(cantidad): "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:Mal uso de tipos de datos:$lee" >> $informe
+    fi
+    echo -n "Variables no representativas(s|n): "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:Variables no representativas" >> $informe
+    fi
+    echo -n "Variables globales: "
+    read lee
+    if [[ $lee == "s" ]]
+    then
+        echo "Descuento:variables globales" >> $informe
+    fi
+    echo -n "Comentarios adicionales: "
+    read lee
+    echo -e "\n\nComentarios adicionales"
+    echo $lee >> informe
 fi
-
-
 
 cd ..
 rm "$tareaN-$grupoXX/" -r
 echo -e "\n\n\tResultados:"
 cat "$informe"
 
-
-sleep 1 
+sleep 1
 echo -e "\nFinalizado\nSaliendo"
