@@ -26,6 +26,7 @@ function limpio {
         fi
     else
         return 1
+    fi
 }
 
 
