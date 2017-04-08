@@ -66,6 +66,8 @@ for tarea_grupo in $(ls | grep \.tar\.gz)
 do
     cp $tarea_grupo "$dir_root/run/"
     grupo=$($id_grupo $tarea_grupo)
+    cd "$dir_root/run/"
     single -t $N -g $grupo -d "$dir_root/run" -p "$inputs" -o "$out_dir" -full
+    cd ..
     rm "$dir_root/run/*"
 done
