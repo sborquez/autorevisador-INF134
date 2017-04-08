@@ -96,6 +96,7 @@ echo  -e "\tRevisador de tareas individual V0.1\n"
 echo "Tarea: $tareaN"
 echo "Grupo: $grupoXX"
 echo "Inputs: $inputs"
+echo "Informe: $out_dir/"
 
 # Creacion de informe
 fecha=$(date +%T_%d-%m)

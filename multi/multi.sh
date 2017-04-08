@@ -1,164 +1,71 @@
 #!/bin/bash
 
-# Revisador de tareas automatico
-# Estructuras de Datos INF-134
-# Sebastian Borquez
-
-# Scripts de Python
-comparar="./comparator.py"
-memocheck="./memocheck.py"
-
-# Directorio de .tar.gz's
-dirc=$(pwd)
-
-# Directorio de pruebas
-pruebas=$dirc
-
-# Directorio del resumen
-resumen=$dirc
-
-# Tarea
-N=0
+id_grupo="grupo.py"
 
 # Leyendo parametros
 while [ -n "$1" ]
 do
     case "$1" in
+        
         -d) if [ -d $2 ]
             then
-                dirc="$dirc/$2"
+                dir_root="$2"
             else
-                echo "$dirc/$2 no es un directorio valido."
+                echo "Argumento incorrecto: directorio tareas"
+                exit 1
             fi
             shift;;
-        -i) if [ -d $2 ]
+
+        -t) if [[ $2 =~ ^[1-6]$ ]]
             then
-                pruebas="$pruebas/$2"
+                N=$2
             else
-                echo "$pruebas/$2 no es un directorio valido."
+                echo "Argumento incorrecto: numero de tarea"
+                exit 1
             fi
-            shift;;
+            shift;; 
+
         -o) if [ -d $2 ]
             then
-                resumen="$2"
+                out_dir="$2"
             else
-                echo "$resumen/$2 no es un directorio valido."
+                echo "Argumento incorrecto: directorio informe"
+                exit 1
             fi
             shift;;
-        -n) N=$2
+
+        -p) if [ -d $2 ]
+            then
+                inputs="$2"
+            else
+                echo "Argumento incorrecto: directorio pruebas"
+                exit 1
+            fi
             shift;;
-        *) echo "$1 not option";;
     esac
     shift
 done
 
-
-# Cantidad de grupos
-if [ $N -eq 0 ] 
+# Parametros dados?
+if [ -z "$N" ] || [ -z "$inputs" ] || [ -z "$out_dir" ] || [ -z "$dir_root" ]
 then
-    echo "Utilice -n N para indicar la tarea."
-    echo "Saliendo."
-    exit 126
+    echo "Usar -t, -g y -p"
+    echo "Saliendo"
+    exit 1
 fi
 
-tareas=$(ls | grep .tar.gz | wc -l)
-if [ $tareas -eq 0 ]
+if [ -d "$dir_root/run" ]
 then
-    echo "Directorio sin tareas."
-    echo "Saliendo."
-    exit 126
+    echo "Eliminando viejo directorio"
+    rm -rf "$dir_root/run"
 fi
 
-# Print
-clear
-echo  -e "\tRevisador de tareas V0.1\n"
-echo "Tarea $N"
-echo "Directorio de pruebas: $pruebas"
-echo "Directorio de tareas: $dirc"                
-echo "Directorio de resumen: $resumen"
-echo  -e "Cantidad de grupos: $tareas \n"
+mkdir "$dir_root/run"
 
-# Creacion de informe
-informe="$resumen/informe_tarea$N.txt" 
-echo "Tarea $N" > $informe
-date >> $informe
-echo -e "Grupos: $tareas\n\n" >> $informe
-
-# Revisar cada tarea
-revisados=0
-while [ $tareas -ne $revisados ]
+for tarea_grupo in $(ls | grep \.tar\.gz)
 do
-    revisados=$[$revisados + 1]
-    if [ $revisados -lt 10 ]
-    then
-        grupo="grupo0$revisados"        
-    else
-        grupo="grupo$revisados"
-    fi
-    
-    # Escribir en el informe
-    echo "Grupo $grupo:" >> $informe
-
-    # Descomprimir tareas
-    echo -n "Descomprimiendo $grupo-tarea$N.tar.gz ..."
-    tar xvzf "$grupo-tarea$N.tar.gz"
-
-    # Revisar si se descomprimio correctamente
-    if [ -d "$dirc/tarea$N-$grupo" ]
-    then
-        echo -e "\tnombre carpeta correcto"
-        echo "Nombre carpeta correcto" >> $informe
-
-        # Compilar
-        echo -n "Compilando..."
-        make_out=$(make "tarea$N" -C "$dirc/tarea$N-$grupo")
-        if [ $? -eq 0 ]
-        then
-            echo -e "t\compilacion correcta"
-            # Revisar -Wall
-            if [ $(echo $make_out | grep "Wall" -c) -ne $(echo $make_out | grep "g++" -c) ]
-            then
-                echo "Revisar -Wall flags en Makefile"
-                echo "Revisar -Wall flags en Makefile" >> $informe
-            fi
-            # Revisar Warnings
-            echo -n "Numero de warnings: "
-            read warns
-            echo "Warnings: $warns" >> $informe 
-
-            # Ejecutar
-            for prueba in $(ls $pruebas/ | grep input)
-            do
-                echo "Ejecutando tarea con $prueba..."
-                tempout=$(mktemp -t output.XXX)
-                templog=$(mktemp -t logval.XXX)
-                out =$(valgrind --leak-check=full -q --log-file=$templog $dirc/tarea$N-$grupo/tarea$N < $pruebas/$prueba)
-                echo $out >> tempout
-
-                echo "Revisando resultados..."
-                echo -n "Resultado en $prueba: " >> $informe
-                python $comparar $pruebas/$prueba.out $tempout >> $informe
-
-                echo -n "Uso de memoria con $prueba: " >> $informe
-                python $memocheck $templog >> $informe 
-                
-                rm -f $tempout
-                rm -f $templog
-            done
-
-        else
-            # Revisar Warnings
-            echo -n "Numero de warnings: "
-            read warns
-            echo "Warnings: $warns" >> $informe 
-
-            echo -e "Problemas con Makefile\nRevisar manualemente"
-            echo -e "Problemas con Makefile\nRevisar manualemente\n" >> $informe
-        fi
-
-    else
-        echo -e "Nombre carpeta incorrecto\nRevisar manualemente"
-        echo -e "Nombre carpeta incorrecto\nRevisar manualemente\n" >> $informe
-    fi
-
+    cp $tarea_grupo "$dir_root/run/"
+    grupo=$($id_grupo $tarea_grupo)
+    single -t $N -g $grupo -d "$dir_root/run" -p "$inputs" -o "$out_dir" -full
+    rm "$dir_root/run/*"
 done
