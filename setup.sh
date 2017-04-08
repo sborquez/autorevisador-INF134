@@ -37,7 +37,7 @@ then
     ln -s "$dir/scripts/comparator.py" "$HOME/bin/comparator.py"
 
     echo -e "\nAhora puede utilizar single para revisar una tarea"
-    echo -e "\tsingle -t (1-6) -g (1-28) (-d|-home|-desktop) (dir) [-full]"
+    echo -e "\tsingle -t (1-6) -g (1-28) -p (dir) [-full]"
 else
     echo "Argumento invalido $1"
 fi

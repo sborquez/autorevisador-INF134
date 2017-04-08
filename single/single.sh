@@ -33,15 +33,6 @@ function limpio {
 while [ -n "$1" ]
 do
     case "$1" in
-        -t) if [[ $2 =~ ^[1-6]$ ]]
-            then
-                tareaN="tarea$2"
-            else
-                echo "Argumento incorrecto: numero de tarea"
-                exit 1
-            fi
-            shift;;
-
         -g) if [[ $2 =~ ^[1-9]$|^1[0-9]$|^2[0-8]$ ]]
             then
                 if [ $2 -lt 10 ]
@@ -65,11 +56,20 @@ do
             fi
             shift;;
 
-        -d) if [ -d $2 ]
+        -p) if [ -d $2 ]
             then
                 inputs="$2"
             else
                 echo "Argumento incorrecto: directorio pruebas"
+                exit 1
+            fi
+            shift;;
+
+        -t) if [[ $2 =~ ^[1-6]$ ]]
+            then
+                tareaN="tarea$2"
+            else
+                echo "Argumento incorrecto: numero de tarea"
                 exit 1
             fi
             shift;;
@@ -83,7 +83,7 @@ done
 # Parametros dados?
 if [ -z "$grupoXX" ] || [ -z "$tareaN" ] || [ -z "$inputs" ] || [ -z "$out_dir" ]
 then
-    echo "Usar -t, -g y (-home|-desktop|-d)"
+    echo "Usar -t, -g y -p"
     echo "Saliendo"
     exit 1
 fi
