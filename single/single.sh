@@ -16,7 +16,7 @@ function limpio {
     if [ 0 -ne $# ]
     then
         total=$(ls -p | grep -v -e "/$\|\.cpp$\|[mM]akefile\|\.h$\|\.hpp$\|README" | wc -l)
-        if [ 0 -ne $total]
+        if [ 0 -ne $total ]
         then
             echo -e "\nHay archivos basura:"
             ls -p | grep -v -e "/$\|\.cpp$\|[mM]akefile\|\.h$\|\.hpp$\|README"
@@ -102,10 +102,11 @@ echo "Informe: $out_dir/"
 fecha=$(date +%T_%d-%m)
 informe="$out_dir/$grupoXX-$tareaN-$fecha.txt" 
 echo "Tarea:$tareaN" > $informe
+echo "Grupo:$grupoXX" >> $informe
 
 # Buscar archivo y descomprimir
 echo -e "\nDescomprimiendo $grupoXX-tarea$N.tar.gz"
-echo -n "Descomprimiendo:" >> $informe
+echo -n "Descompresion:" >> $informe
 if tar xvzf "$grupoXX-$tareaN.tar.gz"   
 then
     echo "Descomprimido"
@@ -154,7 +155,7 @@ else
     if [ 0 -ne $(ls | grep \.cpp$ | wc -l) ]
     then
         echo "Se continuara de todas formas"
-    elif cd ./*
+    elif cd $(ls -p | grep -e "/$")
     then
         echo "Se continuara de todas formas en $(pwd)"
         # Revisar y borrar basura
@@ -217,7 +218,8 @@ echo -e "Compilado\n"
 echo -n "Numero de warnings: "
 read warns
 echo "Warnings:$warns" >> $informe
-
+echo -e "\nEjecucion" >> $informe
+ 
 # Probar inputs
 for (( i=1; i < 3; i++ ))
 do
@@ -229,6 +231,9 @@ do
     templog=$(mktemp -t logval.XXX)
     valgrind --leak-check=summary --log-file=$templog ./$tareaN < $inputs/input$i >> $tempout
     
+    tail $templog
+    sleep 1
+
     echo -e "Output esperado:"
     cat "$inputs/output$i"
     
@@ -257,18 +262,18 @@ do
     
     rm -f $tempout
     rm -f $templog
+    sleep 2
 done
 
 if $full
 then
     echo "Revision completa"
     echo "README"
-    echo "README" >> $informe
     echo "Abra README"
     sleep 2
 
     echo "Evaluacion"
-    echo "Evaluacion" >> $informe
+    echo -e "\nREADME-Evaluacion" >> $informe
     echo -n "Nombres(10): "
     read lee
     echo "Nombres:$lee" >> $informe
@@ -286,7 +291,7 @@ then
     echo "Dificultades:$lee" >> $informe
 
     echo "Descuentos extras"
-    echo "Descuentos extras" >> $informe
+    echo -e "\nDescuentos extras" >> $informe
     echo -n "Estructura incorrecta(s|n): "
     read lee
     if [[ $lee == "s" ]]
@@ -302,7 +307,7 @@ then
     echo -e "\nEntrega"
     echo -n "Atraso(cantidad): "
     read lee
-    if [ $lee -ne 0]
+    if [ $lee -ne 0 ]
     then
         echo "Descuento:Atraso:$lee" >> $informe
     fi
@@ -383,8 +388,8 @@ then
     fi
     echo -n "Comentarios adicionales: "
     read lee
-    echo -e "\n\nComentarios adicionales"
-    echo $lee >> informe
+    echo -e "\nComentarios adicionales" >> $informe
+    echo $lee >> $informe
 fi
 
 cd ..

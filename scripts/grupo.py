@@ -1,14 +1,15 @@
 #!/usr/bin/python2
 import sys
+from time import sleep
 
 tarea = sys.argv[1]
-tarea = tarea.lower().split(".")
+tarea = tarea.lower().replace("-",".").split(".")
 for i in tarea:
     if "grupo" in i:
-        index = tarea.find("grupo") + 5
+        index = i.find("grupo") + 5
         try:
-            grupo=str(tarea[index])
-            grupo+=str(tarea[index+1])
+            grupo=str(i[index])
+            grupo+=str(i[index+1])
         except IndexError:
             print grupo
         else:

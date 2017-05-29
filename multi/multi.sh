@@ -49,25 +49,30 @@ done
 # Parametros dados?
 if [ -z "$N" ] || [ -z "$inputs" ] || [ -z "$out_dir" ] || [ -z "$dir_root" ]
 then
-    echo "Usar -t, -g y -p"
+    echo "Usar -t, -d, -o y -p"
+    echo "-t: numero tarea."
+    echo "-d: directorio donde se encuentran las tareas."
+    echo "-o: directorio donde quedarán los informes."
+    echo "-p: directorio donde se encuentran inputs y outputs."
     echo "Saliendo"
     exit 1
 fi
 
 if [ -d "$dir_root/run" ]
 then
-    echo "Eliminando viejo directorio"
+    echo "Eliminando directorio"
     rm -rf "$dir_root/run"
 fi
 
-mkdir "$dir_root/run"
 
 for tarea_grupo in $(ls | grep \.tar\.gz)
 do
-    cp $tarea_grupo "$dir_root/run/"
+    mkdir "$dir_root/run"
+    cp "./$tarea_grupo" "$dir_root/run/"
     grupo=$($id_grupo $tarea_grupo)
+    echo $grupo
     cd "$dir_root/run/"
     single -t $N -g $grupo -d "$dir_root/run" -p "$inputs" -o "$out_dir" -full
     cd ..
-    rm "$dir_root/run/*"
+    rm -rf "$dir_root/run"
 done
